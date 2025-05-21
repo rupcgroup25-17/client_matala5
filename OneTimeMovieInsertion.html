@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>One Time Movie Insertion</title>
+
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="moviesDB.js"></script>
+    <script src="ajaxCalls.js"></script>
+
+    <script>
+    let Arr = [];
+    let Issue = [];
+
+    $(document).ready(() => {
+        getMovies();
+        
+        $('#send').on('click', function() {
+            console.log('Sending movies one by one...');
+            sendMovieByMovie(0);  // Start with the first movie
+        });
+    });
+
+    function getMovies() {
+
+    movies.forEach(movie => {
+
+        // Movie object creation as before
+        var Movie = {
+            Url: movie.url || "",
+            PrimaryTitle: movie.primaryTitle,
+            Description: movie.description || "",
+            PrimaryImage: movie.primaryImage,
+            Year: movie.startYear || 1900,
+            ReleaseDate: new Date(movie.releaseDate).toISOString(),
+            Language: movie.language || 'English',
+            Budget: movie.budget || 100000,
+            GrossWorldwide: movie.grossWorldwide || 0,
+            Genres: movie.genres ? movie.genres.join() : 'None',
+            IsAdult: movie.isAdult || false,
+            RuntimeMinutes: movie.runtimeMinutes || 10,
+            AverageRating: movie.averageRating || 0,
+            NumVotes: movie.numVotes || 0,
+            priceToRent: movie.priceToRent || 15,
+            rentalCount: movie.rentalCount || 0
+        };
+
+        Arr.push(Movie);
+    });
+}
+
+    // Send movies one by one
+    function sendMovieByMovie(index) {
+        if (index < Arr.length) {
+            let movie = Arr[index];
+            console.log('Sending:', movie);
+            let url = 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Movies';
+            
+            ajaxCall('POST', url, JSON.stringify(movie), function (res) {
+                sendMovieByMovie(index + 1);
+            }, function (err) {
+                console.error('Error:', err);
+                Issue.push(movie)
+                sendMovieByMovie(index + 1);
+            });
+        } else {
+            console.log('All movies sent!');
+            console.log('Movies with issues:', Issue);
+        }
+    }
+    </script>
+
+</head>
+<body>
+    <div id="aa"></div>
+    <input type="button" id="send" value="Send Movies">
+</body>
+</html>

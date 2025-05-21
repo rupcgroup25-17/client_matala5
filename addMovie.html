@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Movie - Curated Cinema</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="ajaxCalls.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #1a1a1a;
+            --accent-color: #c9a96e;
+            --bg-color: #f9f9f9;
+            --text-color: #333;
+            --spacing: 1.5rem;
+            --error-color: #d9534f;
+            --success-color: #5cb85c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: var(--spacing);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            padding: calc(var(--spacing) * 2) 0;
+            border-bottom: 1px solid var(--accent-color);
+            margin-bottom: var(--spacing);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            color: var(--primary-color);
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            color: var(--accent-color);
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .user-greeting {
+            background-color: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: var(--spacing);
+            text-align: right;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .user-greeting strong {
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.9rem;
+            margin-left: 10px;
+            text-decoration: none;
+        }
+
+        .logout-btn:hover {
+            color: white;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: var(--spacing);
+            flex-wrap: wrap;
+        }
+
+        button, .nav-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+
+        button:hover, .nav-button:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .form-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: var(--spacing);
+            margin-bottom: var(--spacing);
+        }
+
+        .form-title {
+            color: var(--primary-color);
+            margin-bottom: var(--spacing);
+            font-weight: 500;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 250px;
+            margin: 0 10px 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .form-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231a1a1a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+            padding-right: 30px;
+        }
+
+        .form-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+        }
+
+        .form-group .error {
+            color: var(--error-color);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .submit-row {
+            display: flex;
+            justify-content: center;
+            margin-top: var(--spacing);
+        }
+
+        .submit-btn {
+            min-width: 200px;
+        }
+
+        .notification {
+            padding: 15px;
+            margin-bottom: var(--spacing);
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+        }
+
+        .error-message {
+            background-color: rgba(217, 83, 79, 0.1);
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+        }
+
+        .success-message {
+            background-color: rgba(92, 184, 92, 0.1);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
+
+        input.invalid, textarea.invalid, select.invalid {
+            border-color: var(--error-color);
+            background-color: rgba(217, 83, 79, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .form-group {
+                min-width: 100%;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Curated Cinema</h1>
+        <p class="subtitle">Add New Movie</p>
+    </header>
+
+    <div class="user-greeting" id="userGreeting">
+        Welcome <strong id="userName"></strong>
+    </div>
+
+    <div class="controls">
+        <a href="index.html" class="nav-button">Back to Movie Catalog</a>
+        <a href="MyMovies.html" class="nav-button">My Movie Collection</a>
+        <a href="userProfile.html" class="nav-button">My Profile</a>
+        <button class="nav-button" id="logoutBtn">Logout</button>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <div class="form-container">
+        <h2 class="form-title">Add a New Movie</h2>
+
+        <form id="addMovieForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="primaryTitle">Movie Title *</label>
+                    <input type="text" id="primaryTitle" name="primaryTitle" required>
+                    <div class="error" id="primaryTitleError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="year">Year *</label>
+                    <input type="number" id="year" name="year" min="1900" max="2030" required>
+                    <div class="error" id="yearError"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="primaryImage">Image URL *</label>
+                    <input type="url" id="primaryImage" name="primaryImage" placeholder="https://example.com/image.jpg" required>
+                    <div class="error" id="primaryImageError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="url">Movie URL</label>
+                    <input type="url" id="url" name="url" placeholder="https://example.com/movie">
+                    <div class="error" id="urlError"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="language">Language *</label>
+                    <input type="text" id="language" name="language" list="languageOptions" required>
+                    <datalist id="languageOptions">
+                        <option value="English">
+                        <option value="Spanish">
+                        <option value="French">
+                        <option value="German">
+                        <option value="Chinese">
+                        <option value="Japanese">
+                        <option value="Korean">
+                        <option value="Hindi">
+                        <option value="Arabic">
+                        <option value="Russian">
+                        <option value="Italian">
+                    </datalist>
+                    <div class="error" id="languageError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="releaseDate">Release Date *</label>
+                    <input type="date" id="releaseDate" name="releaseDate" required>
+                    <div class="error" id="releaseDateError"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="budget">Budget ($)</label>
+                    <input type="number" id="budget" name="budget" min="100000" placeholder="e.g. 1000000">
+                    <div class="error" id="budgetError">Minimum budget is $100,000</div>
+                </div>
+                <div class="form-group">
+                    <label for="grossWorldwide">Worldwide Gross ($)</label>
+                    <input type="number" id="grossWorldwide" name="grossWorldwide" min="0" value="0">
+                    <div class="error" id="grossWorldwideError"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="genres">Genres</label>
+                    <input type="text" id="genres" name="genres" list="genreOptions" placeholder="e.g. Drama, Comedy, Action">
+                    <datalist id="genreOptions">
+                        <option value="Action">
+                        <option value="Adventure">
+                        <option value="Animation">
+                        <option value="Biography">
+                        <option value="Comedy">
+                        <option value="Crime">
+                        <option value="Documentary">
+                        <option value="Drama">
+                        <option value="Family">
+                        <option value="Fantasy">
+                        <option value="History">
+                        <option value="Horror">
+                        <option value="Music">
+                        <option value="Musical">
+                        <option value="Mystery">
+                        <option value="Romance">
+                        <option value="Sci-Fi">
+                        <option value="Sport">
+                        <option value="Thriller">
+                        <option value="War">
+                        <option value="Western">
+                    </datalist>
+                    <div class="error" id="genresError">Separate genres with commas</div>
+                </div>
+                <div class="form-group">
+                    <label for="runtimeMinutes">Runtime (minutes) *</label>
+                    <input type="number" id="runtimeMinutes" name="runtimeMinutes" min="1" required>
+                    <div class="error" id="runtimeMinutesError"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="averageRating">Average Rating</label>
+                    <input type="number" id="averageRating" name="averageRating" min="0" max="10" step="0.1" value="0">
+                    <div class="error" id="averageRatingError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="numVotes">Number of Votes</label>
+                    <input type="number" id="numVotes" name="numVotes" min="0" value="0">
+                    <div class="error" id="numVotesError"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="4"></textarea>
+                    <div class="error" id="descriptionError"></div>
+                </div>
+                <div class="form-group" style="align-self: flex-end;">
+                    <label class="checkbox-label" for="isAdult">
+                        <input type="checkbox" id="isAdult" name="isAdult">
+                        <span>Adult Content</span>
+                    </label>
+                    <div class="error" id="isAdultError"></div>
+                </div>
+            </div>
+
+            <div class="submit-row">
+                <button type="submit" class="submit-btn">Add Movie</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const moviesURL = 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Movies';
+    
+        function checkAuth() {
+            const storedUser = localStorage.getItem("currentUser");
+        
+            if (!storedUser || storedUser === "undefined") {
+                window.location.href = 'login.html';
+                return null;
+            }
+        
+            const user = JSON.parse(storedUser);
+            document.getElementById('userName').textContent = user.name;
+            return user;
+        } 
+    
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.className = 'notification ' + (isError ? 'error-message' : 'success-message');
+            notification.innerHTML = `<p>${message}</p>`;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+    
+        function formatDate(date) {
+            const d = new Date(date);
+            return d.toISOString().split('T')[0];
+        }
+    
+        function SubmitMovie() {
+            const movieData = {
+                primaryTitle: $("#primaryTitle").val(),
+                year: parseInt($("#year").val()),
+                primaryImage: $("#primaryImage").val(),
+                url: $("#url").val(),
+                language: $("#language").val(),
+                releaseDate: formatDate($("#releaseDate").val()),
+                budget: parseInt($("#budget").val()) || 0,
+                grossWorldwide: parseInt($("#grossWorldwide").val()) || 0,
+                genres: $("#genres").val(),
+                isAdult: $("#isAdult").prop("checked"),
+                runtimeMinutes: parseInt($("#runtimeMinutes").val()),
+                averageRating: parseFloat($("#averageRating").val()) || 0,
+                numVotes: parseInt($("#numVotes").val()) || 0,
+                description: $("#description").val(),
+                priceToRent: parseInt($("#priceToRent").val()) || 0,
+                rentalCount: 0
+            };
+    
+            $.ajax({
+                url: moviesURL,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(movieData),
+                success: function () {
+                    showNotification("Movie added successfully");
+                    $("form")[0].reset();
+                },
+                error: function (err) {
+                    showNotification("Error adding movie", true);
+                    console.error("Error inserting movie:", err);
+                }
+            });
+        }
+    
+        $(document).ready(function () {
+            checkAuth();
+            $('#addMovieForm').submit(function (e) {
+                e.preventDefault();
+                SubmitMovie();
+            });
+
+    
+            $('#logoutBtn').on('click', function () {
+                localStorage.removeItem('currentUser');
+                window.location.href = 'login.html';
+            });
+        });
+    </script>            
+</body>
+</html>    

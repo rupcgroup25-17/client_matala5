@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curated Cinema - Register</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="ajaxCalls.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #1a1a1a;
+            --accent-color: #c9a96e;
+            --bg-color: #f9f9f9;
+            --text-color: #333;
+            --spacing: 1.5rem;
+            --error-color: #d9534f;
+            --success-color: #5cb85c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: var(--spacing);
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        header {
+            padding: calc(var(--spacing) * 2) 0;
+            margin-bottom: var(--spacing);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            color: var(--primary-color);
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            color: var(--accent-color);
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .auth-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 480px;
+            padding: calc(var(--spacing) * 2);
+            margin-bottom: var(--spacing);
+        }
+
+        .form-title {
+            text-align: center;
+            margin-bottom: var(--spacing);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+        }
+
+        .form-group .error {
+            color: var(--error-color);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .form-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: var(--accent-color);
+        }
+
+        .switch-form {
+            text-align: center;
+            margin-top: var(--spacing);
+            font-size: 0.9rem;
+        }
+
+        .switch-form a {
+            color: var(--accent-color);
+            cursor: pointer;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+
+        .notification {
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: var(--spacing);
+            text-align: center;
+            display: none;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .error-message {
+            background-color: rgba(217, 83, 79, 0.1);
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+        }
+
+        .success-message {
+            background-color: rgba(92, 184, 92, 0.1);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
+
+        .terms-group {
+            margin-bottom: var(--spacing);
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .terms-group input {
+            margin-right: 10px;
+            margin-top: 5px;
+        }
+
+        .terms-group label {
+            font-size: 0.9rem;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 768px) {
+            .auth-container {
+                padding: var(--spacing);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Curated Cinema</h1>
+        <p class="subtitle">Create Your Account</p>
+    </header>
+
+    <div class="notification" id="notification"></div>
+
+    <div class="auth-container">
+        <h2 class="form-title">Register</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required>
+                <div class="error" id="nameError">Name must be at least 2 characters long and contain only letters</div>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+                <div class="error" id="emailError">Please enter a valid email address</div>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+                <div class="error" id="passwordError">Password must be at least 8 characters long and contain at least one uppercase letter and one number</div>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required>
+                <div class="error" id="confirmPasswordError">Passwords do not match</div>
+            </div>
+            <div class="terms-group">
+                <input type="checkbox" id="terms" name="terms" required>
+                <label for="terms">I agree to the Terms and Conditions and Privacy Policy of Curated Cinema</label>
+                <div class="error" id="termsError">You must agree to the terms to continue</div>
+            </div>
+            <div class="form-actions">
+                <button type="submit">Create Account</button>
+            </div>
+        </form>
+        <div class="switch-form">
+            <p>Already have an account? <a href="login.html">Login</a></p>
+        </div>
+    </div>
+
+    <script>
+        const serverURL = 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Users';
+    
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+    
+        function isValidPassword(password) {
+            return password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password);
+        }
+    
+        function isValidName(name) {
+            return name.length >= 2 && /^[A-Za-z\s]+$/.test(name);
+        }
+    
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification ' + (isError ? 'error-message' : 'success-message');
+            notification.style.display = 'block';
+    
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+    
+        document.getElementById('registerForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const termsChecked = document.getElementById('terms').checked;
+
+            let isValid = true;
+            document.querySelectorAll('.error').forEach(e => e.style.display = 'none');
+
+            // בדיקות תקינות
+            if (!isValidName(name)) {
+                document.getElementById('nameError').style.display = 'block';
+                isValid = false;
+            }
+            if (!isValidEmail(email)) {
+                document.getElementById('emailError').style.display = 'block';
+                isValid = false;
+            }
+            if (!isValidPassword(password)) {
+                document.getElementById('passwordError').style.display = 'block';
+                isValid = false;
+            }
+            if (password !== confirmPassword) {
+                document.getElementById('confirmPasswordError').style.display = 'block';
+                isValid = false;
+            }
+            if (!termsChecked) {
+                document.getElementById('termsError').style.display = 'block';
+                isValid = false;
+            }
+
+            if (!isValid) return;
+
+            const userData = {
+                name: name,
+                email: email,
+                passwordHash: password
+            };
+
+            // שליחת בקשת POST לשרת
+            $.ajax({
+                url: serverURL,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(userData),
+                success: function (user) {
+                    // בדוק אם התגובה כוללת את כל פרטי המשתמש
+                    if (user && user.id && user.name && user.email) {
+                        localStorage.setItem("currentUser", JSON.stringify(user)); // שמירת המשתמש בזיכרון המקומי
+                        showNotification("Registration successful!");
+                        window.location.href = "userProfile.html"; // מעבר לדף הפרופיל
+                    } else {
+                        showNotification("Registration successful, but user data is incomplete.", true);
+                        console.error("Incomplete user data:", user);
+                    }
+                },
+                error: function (err) {
+                    console.error("Error registering:", err);
+                    showNotification("Registration failed. Email may already be taken.", true);
+                }
+            });
+        });
+
+    </script>    
+</body>
+</html>

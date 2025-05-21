@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Curated Cinema</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="ajaxCalls.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a1a1a;
+            --accent-color: #c9a96e;
+            --bg-color: #f9f9f9;
+            --text-color: #333;
+            --spacing: 1.5rem;
+            --error-color: #d9534f;
+            --success-color: #5cb85c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: var(--spacing);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            padding: calc(var(--spacing) * 2) 0;
+            border-bottom: 1px solid var(--accent-color);
+            margin-bottom: var(--spacing);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            color: var(--primary-color);
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            color: var(--accent-color);
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: var(--spacing);
+            flex-wrap: wrap;
+        }
+
+        button, .nav-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+
+        button:hover, .nav-button:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .notification {
+            padding: 15px;
+            margin-bottom: var(--spacing);
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+        }
+
+        .error-message {
+            background-color: rgba(217, 83, 79, 0.1);
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+        }
+
+        .success-message {
+            background-color: rgba(92, 184, 92, 0.1);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
+
+        .admin-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: var(--spacing);
+            margin-bottom: var(--spacing);
+        }
+
+        .admin-title {
+            color: var(--primary-color);
+            margin-bottom: var(--spacing);
+            font-weight: 500;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        tr:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .toggle-button {
+            padding: 8px 16px;
+            font-size: 0.8rem;
+        }
+
+        .status-active {
+            color: var(--success-color);
+            font-weight: 500;
+        }
+
+        .status-inactive {
+            color: var(--error-color);
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Curated Cinema</h1>
+        <p class="subtitle">Admin Panel</p>
+    </header>
+
+    <div class="controls">
+        <a href="index.html" class="nav-button">Back to Movie Catalog</a>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <div class="admin-container">
+        <h2 class="admin-title">User Management</h2>
+        <table id="usersTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Users will be loaded here dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const usersURL = 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Users';
+    
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.className = 'notification ' + (isError ? 'error-message' : 'success-message');
+            notification.innerHTML = `<p>${message}</p>`;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+    
+        function loadUsers() {
+            $.ajax({
+                url: `${usersURL}/GetAllUsers`,
+                type: 'GET',
+                success: function (users) {
+                    const tbody = document.querySelector('#usersTable tbody');
+                    tbody.innerHTML = '';
+    
+                    if (users && users.length > 0) {
+                        users.forEach(user => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${user.id}</td>
+                                <td>${user.name}</td>
+                                <td>${user.email}</td>
+                                <td class="${user.active ? 'status-active' : 'status-inactive'}">${user.active ? 'Active' : 'Inactive'}</td>
+                                <td>
+                                    <button class="toggle-button" data-id="${user.id}" data-active="${user.active}">
+                                        ${user.active ? 'Deactivate' : 'Activate'}
+                                    </button>
+                                </td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+    
+                        // Add event listeners to toggle buttons
+                        document.querySelectorAll('.toggle-button').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const userId = this.getAttribute('data-id');
+                                toggleUserActive(userId);
+                            });
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No users found</td></tr>';
+                    }
+                },
+                error: function (err) {
+                    showNotification("Error loading users: " + (err.responseText || err.statusText), true);
+                }
+            });
+        }
+        function toggleUserActive(userId) {
+            $.ajax({
+                url: `${usersURL}/ToggleActive/${userId}`,
+                type: 'POST',
+                success: function(response) {
+                    showNotification(`User status updated successfully to ${response.isActive ? 'Active' : 'Inactive'}`);
+                    loadUsers(); // Reload the users list
+                },
+                error: function(err) {
+                    showNotification("Error updating user status: " + (err.responseText || err.statusText), true);
+                }
+            });
+        }
+        
+        // Load users when the page loads
+        $(document).ready(function() {
+            loadUsers();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,879 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curated Cinema Collection</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="ajaxCalls.js"></script>
+    <!--<script src="moviesDB.js"></script>-->
+
+    <style>
+        :root {
+            --primary-color: #1a1a1a;
+            --accent-color: #c9a96e;
+            --bg-color: #f9f9f9;
+            --text-color: #333;
+            --spacing: 1.5rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: var(--spacing);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            padding: calc(var(--spacing) * 2) 0;
+            border-bottom: 1px solid var(--accent-color);
+            margin-bottom: var(--spacing);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            color: var(--primary-color);
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            color: var(--accent-color);
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: var(--spacing);
+            flex-wrap: wrap;
+        }
+
+        button, .nav-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+
+            button:hover, .nav-button:hover {
+                background-color: var(--accent-color);
+                color: white;
+            }
+
+        .cart-button {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            font-weight: 500;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            width: 100%;
+        }
+
+            .cart-button:hover {
+                background-color: var(--primary-color);
+                color: white;
+            }
+
+        #moviesContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--spacing);
+            padding: var(--spacing) 0;
+        }
+
+        .movie {
+            background-color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: var(--spacing);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+            .movie:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            }
+
+            .movie:before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 4px;
+                height: 100%;
+                background-color: var(--accent-color);
+            }
+
+        .movie-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .movie h3 {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .movie-year {
+            color: var(--accent-color);
+            font-weight: 300;
+        }
+
+        .movie-genres {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .movie-description {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #555;
+            flex-grow: 1;
+        }
+
+        .movie-rating {
+            display: flex;
+            align-items: center;
+            margin-top: 1rem;
+            justify-content: space-between;
+        }
+
+        .stars {
+            display: flex;
+            align-items: center;
+        }
+
+        .star {
+            color: var(--accent-color);
+            margin-right: 2px;
+        }
+
+        .movie-votes {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .movie-runtime {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        #cart-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            display: none;
+            z-index: 100;
+            animation: fadeOut 3s forwards;
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+
+            70% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #moviesContainer {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .search-form {
+            background-color: white;
+            padding: var(--spacing);
+            margin-bottom: var(--spacing);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .search-form h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .search-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .search-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .search-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .search-button {
+            background-color: var(--primary-color);
+            flex: 1;
+        }
+
+        .reset-button {
+            background-color: #6c757d;
+            flex: 1;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: var(--spacing);
+            gap: 0.5rem;
+        }
+        
+        .pagination button {
+            min-width: 40px;
+            padding: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .pagination button.active {
+            background-color: var(--accent-color);
+        }
+        
+        .pagination-info {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        
+        .rent-button {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            font-weight: 500;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            width: 100%;
+        }
+        
+        .rent-button:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        /* Modal styles for the rental form */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: var(--spacing);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 480px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-modal:hover {
+            color: var(--primary-color);
+        }
+        
+        .rental-form {
+            margin-top: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .rental-summary {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: rgba(201, 169, 110, 0.1);
+            border-left: 3px solid var(--accent-color);
+        }
+        
+        .rental-summary p {
+            margin: 5px 0;
+        }
+        
+        .rental-total {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+
+        .rental-error {
+            color: var(--error-color);
+            margin-top: 10px;
+            padding: 10px;
+            background-color: rgba(217, 83, 79, 0.1);
+            border: 1px solid var(--error-color);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Curated Cinema</h1>
+        <p class="subtitle">A Premium Film Collection</p>
+    </header>
+
+    <div class="controls">
+        <a href="MyMovies.html" class="nav-button">Go to My Movies</a>
+        <a href="addMovie.html" class="nav-button">Add New Movie</a>
+        <a href="userProfile.html" class="nav-button">My Profile</a>
+        <a href="admin.html" class="nav-button">Admin Panel</a>
+        <button class="nav-button" id="logoutBtn">Logout</button>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <!-- Search Form -->
+    <div class="search-form">
+        <h3>Search Movies</h3>
+        <div class="search-row">
+            <div class="search-group">
+                <label for="titleSearch">Movie Title</label>
+                <input type="text" id="titleSearch" placeholder="Enter movie title...">
+            </div>
+            <div class="search-group">
+                <label for="startDate">From Date</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="search-group">
+                <label for="endDate">To Date</label>
+                <input type="date" id="endDate">
+            </div>
+        </div>
+        <div class="search-buttons">
+            <button class="search-button" id="searchBtn">Search</button>
+            <button class="reset-button" id="resetBtn">Reset</button>
+        </div>
+    </div>
+
+    <div id="moviesContainer"></div>
+    
+    <div class="pagination" id="pagination"></div>
+    <div class="pagination-info" id="paginationInfo"></div>
+
+    <!-- Rent Movie Modal -->
+    <div class="modal" id="rentModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeRentModal">&times;</span>
+            <h2>Rent a Movie</h2>
+            <div id="rentMovieDetails">
+                <!-- Movie details will be loaded here -->
+            </div>
+            <form id="rentForm" class="rental-form">
+                <input type="hidden" id="rentMovieId">
+                <div class="form-group">
+                    <label for="rentStartDate">Start Date</label>
+                    <input type="date" id="rentStartDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="rentDuration">Rental Duration (days)</label>
+                    <input type="number" id="rentDuration" min="1" max="30" value="3" required>
+                </div>
+                <div class="rental-summary" id="rentalSummary">
+                    <!-- Rental summary will be updated here -->
+                </div>
+                <!-- Error message will be inserted here -->
+                <div class="form-group">
+                    <button type="submit" class="nav-button">Confirm Rental</button>
+                </div>
+            </form>
+        </div>
+</div>
+
+    <script>
+        const moviesURL = 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Movies';
+        let currentPage = 1;
+        let totalPages = 1;
+        let pageSize = 10;
+        let currentSearchType = 'all'; // 'all', 'title', or 'date'
+        let currentSearchParams = {};
+    
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.className = 'notification ' + (isError ? 'error-message' : 'success-message');
+            notification.innerHTML = `<p>${message}</p>`;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+    
+        function checkAuth() {
+            const storedUser = localStorage.getItem("currentUser");
+        
+            if (!storedUser || storedUser === "undefined") {
+                window.location.href = 'login.html';
+                return null;
+            }
+        
+            const user = JSON.parse(storedUser);
+            return user;
+        }
+        
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+        
+        function getStarsHTML(rating) {
+            const fullStars = Math.floor(rating);
+            const halfStar = rating % 1 >= 0.5;
+            const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+            
+            let starsHTML = '';
+            
+            for (let i = 0; i < fullStars; i++) {
+                starsHTML += '<span class="star">★</span>';
+            }
+            
+            if (halfStar) {
+                starsHTML += '<span class="star">✫</span>';
+            }
+            
+            for (let i = 0; i < emptyStars; i++) {
+                starsHTML += '<span class="star">☆</span>';
+            }
+            
+            return starsHTML;
+        }
+        
+        function loadMovies(page = 1) {
+            currentPage = page;
+            let url = '';
+    
+            switch(currentSearchType) {
+                case 'title':
+                    url = `${moviesURL}/GetByTitle?title=${encodeURIComponent(currentSearchParams.title)}&pageNumber=${page}&pageSize=${pageSize}`;
+                    break;
+                case 'date':
+                    url = `${moviesURL}/GetByDateRange?startDate=${currentSearchParams.startDate}&endDate=${currentSearchParams.endDate}&pageNumber=${page}&pageSize=${pageSize}`;
+                    break;
+                default:
+                    url = `${moviesURL}?pageNumber=${page}&pageSize=${pageSize}`;
+            }
+    
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function(response) {
+                    const movies = response.movies;
+                    totalPages = response.totalPages;
+            
+                    const container = document.getElementById('moviesContainer');
+                    container.innerHTML = '';
+            
+                    if (movies && movies.length > 0) {
+                        movies.forEach(movie => {
+                            const movieElement = document.createElement('div');
+                            movieElement.className = 'movie';
+                    
+                            movieElement.innerHTML = `
+                                <img src="${movie.primaryImage}" alt="${movie.primaryTitle}" class="movie-image">
+                                <h3>${movie.primaryTitle} <span class="movie-year">(${movie.year})</span></h3>
+                                <div class="movie-genres">${movie.genres || 'No genres specified'}</div>
+                                <div class="movie-description">${movie.description || 'No description available'}</div>
+                                <div class="movie-rating">
+                                    <div class="stars">
+                                        ${getStarsHTML(movie.averageRating)}
+                                    </div>
+                                    <div class="movie-votes">${movie.numVotes} votes</div>
+                             </div>
+                                <div class="movie-runtime">${movie.runtimeMinutes} minutes</div>
+                                <button class="rent-button" data-id="${movie.id}" data-title="${movie.primaryTitle}" data-price="${movie.priceToRent}">Rent Me</button>
+                            `;
+                    
+                            container.appendChild(movieElement);
+                        });
+                
+                        // Add event listeners to rent buttons
+                        document.querySelectorAll('.rent-button').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const movieId = this.getAttribute('data-id');
+                                const movieTitle = this.getAttribute('data-title');
+                                const moviePrice = this.getAttribute('data-price');
+                                openRentModal(movieId, movieTitle, moviePrice);
+                            });
+                        });
+                
+                        // Update pagination with the response data
+                        updatePagination(response);
+                    } else {
+                        container.innerHTML = '<div class="empty-collection"><h2>No movies found</h2><p>Try a different search or reset filters.</p></div>';
+                        document.getElementById('pagination').innerHTML = '';
+                        document.getElementById('paginationInfo').textContent = '';
+                    }
+                },
+                error: function(err) {
+                    showNotification("Error loading movies: " + (err.responseText || err.statusText), true);
+                    console.error("Error loading movies:", err);
+                }
+            });
+        }
+        
+        function updatePagination(responseData) {
+            const paginationElement = document.getElementById('pagination');
+            paginationElement.innerHTML = '';
+    
+            // Previous button
+            if (currentPage > 1) {
+                const prevButton = document.createElement('button');
+                prevButton.textContent = '«';
+                prevButton.addEventListener('click', () => loadMovies(currentPage - 1));
+                paginationElement.appendChild(prevButton);
+            }
+    
+            // Page numbers
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+    
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                if (i === currentPage) {
+                    pageButton.classList.add('active');
+                }
+                pageButton.addEventListener('click', () => loadMovies(i));
+                paginationElement.appendChild(pageButton);
+            }
+    
+            // Next button
+            if (currentPage < totalPages) {
+                const nextButton = document.createElement('button');
+                nextButton.textContent = '»';
+                nextButton.addEventListener('click', () => loadMovies(currentPage + 1));
+                paginationElement.appendChild(nextButton);
+            }
+    
+            // Update pagination info
+            const start = (currentPage - 1) * pageSize + 1;
+            const end = Math.min(currentPage * pageSize, responseData.totalCount);
+            document.getElementById('paginationInfo').textContent = `Showing ${start}-${end} of ${responseData.totalCount} movies`;
+        }
+        
+        function searchByTitle() {
+            const title = document.getElementById('titleSearch').value.trim();
+            
+            if (!title) {
+                showNotification("Please enter a movie title to search", true);
+                return;
+            }
+            
+            currentSearchType = 'title';
+            currentSearchParams = { title: title };
+            currentPage = 1;
+            loadMovies();
+        }
+        
+        function searchByDateRange() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                showNotification("Please select both start and end dates", true);
+                return;
+            }
+            
+            if (new Date(startDate) > new Date(endDate)) {
+                showNotification("Start date cannot be after end date", true);
+                return;
+            }
+            
+            currentSearchType = 'date';
+            currentSearchParams = { startDate: startDate, endDate: endDate };
+            currentPage = 1;
+            loadMovies();
+        }
+        
+        function resetSearch() {
+            document.getElementById('titleSearch').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            
+            currentSearchType = 'all';
+            currentSearchParams = {};
+            currentPage = 1;
+            loadMovies();
+        }
+        
+        function openRentModal(movieId, movieTitle, moviePrice) {
+            const today = new Date();
+            const formattedToday = today.toISOString().split('T')[0];
+    
+            document.getElementById('rentMovieId').value = movieId;
+            document.getElementById('rentMovieDetails').innerHTML = `
+                <h3>${movieTitle}</h3>
+                <p>Price per day: $${moviePrice}</p>
+            `;
+            document.getElementById('rentStartDate').value = formattedToday;
+            document.getElementById('rentStartDate').min = formattedToday;
+            document.getElementById('rentDuration').value = 3;
+    
+            updateRentalSummary(moviePrice, 3);
+    
+            // Remove any previous error message
+            if (document.getElementById('rentalError')) {
+                document.getElementById('rentalError').remove();
+            }
+    
+            const modal = document.getElementById('rentModal');
+            modal.style.display = 'flex';
+        }
+        
+        function closeRentModal() {
+            document.getElementById('rentModal').style.display = 'none';
+        }
+        
+        function updateRentalSummary(pricePerDay, days) {
+            const startDate = new Date(document.getElementById('rentStartDate').value);
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + parseInt(days));
+            
+            const totalPrice = pricePerDay * days;
+            
+            document.getElementById('rentalSummary').innerHTML = `
+                <p><strong>Start Date:</strong> ${formatDate(startDate)}</p>
+                <p><strong>End Date:</strong> ${formatDate(endDate)}</p>
+                <p><strong>Duration:</strong> ${days} days</p>
+                <p class="rental-total">Total Price: $${totalPrice.toFixed(2)}</p>
+            `;
+        }
+        
+        function rentMovie() {
+            const user = checkAuth();
+            if (!user) return;
+    
+            const movieId = parseInt(document.getElementById('rentMovieId').value);
+            const startDate = document.getElementById('rentStartDate').value;
+            const duration = parseInt(document.getElementById('rentDuration').value);
+    
+            // Clear any previous error
+            if (document.getElementById('rentalError')) {
+                document.getElementById('rentalError').remove();
+            }
+    
+            // First check if the user already has this movie
+            $.ajax({
+                url: `${moviesURL}/GetRentedMovies/${user.id}`,
+                type: 'GET',
+                success: function(rentedMovies) {
+                    // Check if user already has this movie
+                    const alreadyRented = rentedMovies.some(movie => movie.id === movieId);
+            
+                    if (alreadyRented) {
+                        // Show error in the modal without making another request
+                        showRentalError("You already have this movie in your collection");
+                        return;
+                    }
+            
+                    // Continue with rental process since user doesn't have the movie
+                    proceedWithRental(user.id, movieId, startDate, duration);
+                },
+                error: function(err) {
+                    showRentalError("Error checking your collection");
+                    console.error("Error checking rented movies:", err);
+                }
+            });
+        }
+
+        function proceedWithRental(userId, movieId, startDate, duration) {
+            // Calculate end date
+            const endDateObj = new Date(startDate);
+            endDateObj.setDate(endDateObj.getDate() + duration);
+            const endDate = endDateObj.toISOString().split('T')[0];
+    
+            // Get price from the form
+            const priceText = document.querySelector('.rental-total').textContent;
+            const totalPrice = parseFloat(priceText.match(/\$(\d+\.\d+)/)[1]);
+    
+            const rentalData = {
+                userId: userId,
+                movieId: movieId,
+                rentStart: startDate,
+                rentEnd: endDate,
+                totalPrice: totalPrice
+            };
+    
+            $.ajax({
+                url: `${moviesURL}/RentMovie`,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(rentalData),
+                success: function(result) {
+                    closeRentModal();
+                    showNotification("Movie rented successfully");
+                },
+                error: function(err) {
+                    showRentalError(err.responseText || "Error renting movie");
+                    console.error("Error renting movie:", err);
+                }
+            });
+        }
+
+        function showRentalError(message) {
+            // Create error element in the modal
+            const errorDiv = document.createElement('div');
+            errorDiv.id = 'rentalError';
+            errorDiv.style.color = 'var(--error-color)';
+            errorDiv.style.marginTop = '10px';
+            errorDiv.style.padding = '10px';
+            errorDiv.style.backgroundColor = 'rgba(217, 83, 79, 0.1)';
+            errorDiv.style.border = '1px solid var(--error-color)';
+            errorDiv.style.borderRadius = '4px';
+            errorDiv.textContent = message;
+    
+            // Insert the error before the form buttons
+            const formGroup = document.querySelector('#rentForm .form-group:last-child');
+            formGroup.parentNode.insertBefore(errorDiv, formGroup);
+        }
+        
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+        
+        $(document).ready(function () {
+            checkAuth();
+            loadMovies();
+            
+            // Event listeners
+            $('#searchBtn').on('click', function() {
+                const title = $('#titleSearch').val().trim();
+                const startDate = $('#startDate').val();
+                const endDate = $('#endDate').val();
+                
+                if (title) {
+                    searchByTitle();
+                } else if (startDate && endDate) {
+                    searchByDateRange();
+                } else {
+                    showNotification("Please enter a title or select date range", true);
+                }
+            });
+            
+            $('#resetBtn').on('click', resetSearch);
+            $('#logoutBtn').on('click', logout);
+            $('#closeRentModal').on('click', closeRentModal);
+            
+            $('#rentDuration').on('input', function() {
+                const moviePrice = document.querySelector('#rentMovieDetails p').textContent.match(/\$(\d+)/)[1];
+                updateRentalSummary(parseInt(moviePrice), parseInt(this.value));
+            });
+            
+            $('#rentStartDate').on('change', function() {
+                const moviePrice = document.querySelector('#rentMovieDetails p').textContent.match(/\$(\d+)/)[1];
+                updateRentalSummary(parseInt(moviePrice), parseInt($('#rentDuration').val()));
+            });
+            
+            $('#rentForm').on('submit', function(e) {
+                e.preventDefault();
+                rentMovie();
+            });
+        });
+    </script>
+</body>
+</html>

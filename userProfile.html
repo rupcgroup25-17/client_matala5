@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Curated Cinema</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a1a1a;
+            --accent-color: #c9a96e;
+            --bg-color: #f9f9f9;
+            --text-color: #333;
+            --spacing: 1.5rem;
+            --error-color: #d9534f;
+            --success-color: #5cb85c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: var(--spacing);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            padding: calc(var(--spacing) * 2) 0;
+            border-bottom: 1px solid var(--accent-color);
+            margin-bottom: var(--spacing);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            color: var(--primary-color);
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            color: var(--accent-color);
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .user-greeting {
+            background-color: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: var(--spacing);
+            text-align: right;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+            .user-greeting strong {
+                color: var(--accent-color);
+                font-weight: 500;
+            }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+
+            .logout-btn:hover {
+                color: white;
+            }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: var(--spacing);
+            flex-wrap: wrap;
+        }
+
+        button, .nav-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+
+            button:hover, .nav-button:hover {
+                background-color: var(--accent-color);
+                color: white;
+            }
+
+        .profile-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing);
+            margin-bottom: var(--spacing);
+        }
+
+        .profile-info, .profile-edit {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: var(--spacing);
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .profile-title {
+            color: var(--primary-color);
+            margin-bottom: var(--spacing);
+            font-weight: 500;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .profile-detail {
+            margin-bottom: 15px;
+        }
+
+            .profile-detail label {
+                display: block;
+                font-size: 0.9rem;
+                color: #777;
+                margin-bottom: 5px;
+            }
+
+            .profile-detail span {
+                font-size: 1.1rem;
+                color: var(--primary-color);
+            }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-size: 0.9rem;
+                color: #555;
+            }
+
+            .form-group input {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 1rem;
+            }
+
+            .form-group .error {
+                color: var(--error-color);
+                font-size: 0.85rem;
+                margin-top: 5px;
+                display: none;
+            }
+
+        .notification {
+            padding: 15px;
+            margin-bottom: var(--spacing);
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+        }
+
+        .error-message {
+            background-color: rgba(217, 83, 79, 0.1);
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+        }
+
+        .success-message {
+            background-color: rgba(92, 184, 92, 0.1);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
+
+        input.invalid {
+            border-color: var(--error-color);
+            background-color: rgba(217, 83, 79, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .profile-container {
+                flex-direction: column;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Curated Cinema</h1>
+        <p class="subtitle">My Profile</p>
+    </header>
+
+    <div class="user-greeting" id="userGreeting">
+        Welcome <strong id="userName"></strong>
+    </div>
+
+    <div class="controls">
+        <a href="index.html" class="nav-button">Back to Movie Catalog</a>
+        <a href="MyMovies.html" class="nav-button">My Movie Collection</a>
+        <a href="addMovie.html" class="nav-button">Add A Movie</a>
+        <button class="nav-button" id="logoutBtn">Logout</button>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <div class="profile-container">
+        <div class="profile-info">
+            <h2 class="profile-title">Your Profile Information</h2>
+            <div class="profile-detail">
+                <label>Username</label>
+                <span id="profileUsername"></span>
+            </div>
+            <div class="profile-detail">
+                <label>Email</label>
+                <span id="profileEmail"></span>
+            </div>
+            <div class="profile-detail">
+                <label>Number of Movies in Collection</label>
+                <span id="profileMoviesCount">Loading...</span>
+            </div>
+        </div>
+
+        <div class="profile-edit">
+            <h2 class="profile-title">Edit Your Profile</h2>
+            <form id="profileEditForm">
+                <div class="form-group">
+                    <label for="editUsername">Username</label>
+                    <input type="text" id="editUsername" name="username" required>
+                    <div class="error" id="usernameError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="editEmail">Email</label>
+                    <input type="email" id="editEmail" name="email" required>
+                    <div class="error" id="emailError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="editPassword">New Password</label>
+                    <small style="display:block; margin-bottom:6px; color:#777;">
+                        If you want to keep your current password, please enter it again here.
+                    </small>
+                    <input type="password" id="editPassword" name="password" required>
+                    <div class="error" id="passwordError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm New Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    <div class="error" id="confirmPasswordError"></div>
+                </div>
+                <button type="submit" class="nav-button">Update Profile</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const usersURL = 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Users';
+        const moviesURL = 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Movies';
+
+        function checkAuth() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user) {
+                window.location.href = 'login.html';
+                return null;
+            } else {
+                document.getElementById('userName').textContent = user.name;
+                document.getElementById('profileUsername').textContent = user.name;
+                document.getElementById('profileEmail').textContent = user.email;
+                return user;
+            }
+        }
+
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.className = 'notification ' + (isError ? 'error-message' : 'success-message');
+            notification.innerHTML = `<p>${message}</p>`;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+
+        function loadUserProfile(userEmail) {
+            if (!userEmail) return;
+            $.ajax({
+                url: `${usersURL}/getByEmail?email=${encodeURIComponent(userEmail)}`,
+                type: 'GET',
+                success: function (user) {
+                    if (user) {
+                        $('#editUsername').val(user.name);
+                        $('#editEmail').val(user.email);
+                        $('#profileUsername').text(user.name);
+                        $('#profileEmail').text(user.email);
+                    
+                        // Load rented movies count
+                        loadRentedMoviesCount(user.id);
+                    } else {
+                        showNotification("User not found.", true);
+                    }
+                },
+                error: function () {
+                    showNotification("Failed to load user profile.", true);
+                }
+            });
+        }
+
+        function loadRentedMoviesCount(userId) {
+            $.ajax({
+                url: `${moviesURL}/GetRentedMovies/${userId}`,
+                type: 'GET',
+                success: function (rentedMovies) {
+                    const count = rentedMovies ? rentedMovies.length : 0;
+                    $('#profileMoviesCount').text(count);
+                },
+                error: function () {
+                    $('#profileMoviesCount').text('0');
+                    console.error("Failed to load rented movies count");
+                }
+            });
+        }
+
+        function updateUserProfile() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user || !user.id) {
+                showNotification("User ID not found", true);
+                return;
+            }
+
+            const userId = user.id;
+            const password = $('#editPassword').val();
+            const confirmPass = $('#confirmPassword').val();
+
+            $('.error').hide();
+
+            if (!password) {
+                $('#passwordError').text('Password is required').show();
+                return;
+            }
+
+            if (password !== confirmPass) {
+                $('#confirmPasswordError').text('Passwords do not match').show();
+                return;
+            }
+
+            const updatedUser = {
+                name: $('#editUsername').val().trim(),
+                email: $('#editEmail').val().trim(),
+                passwordHash: password
+            };
+
+            $.ajax({
+                url: `${usersURL}/Update/${userId}`,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(updatedUser),
+                success: function (updatedUserFromServer) {
+                    showNotification("Profile updated successfully");
+
+                    user.name = updatedUser.name;
+                    user.email = updatedUser.email;
+                    user.passwordHash = updatedUserFromServer.passwordHash;
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                },
+                error: function () {
+                    showNotification("Failed to update profile", true);
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            const user = checkAuth();
+            if (user) {
+                loadUserProfile(user.email);
+                $('#profileEditForm').on('submit', function (e) {
+                    e.preventDefault();
+                    updateUserProfile();
+                });
+                $('#logoutBtn').on('click', function () {
+                    localStorage.removeItem('currentUser');
+                    window.location.href = 'login.html';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

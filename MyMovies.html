@@ -1,0 +1,647 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Movie Collection</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="ajaxCalls.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #1a1a1a;
+            --accent-color: #c9a96e;
+            --bg-color: #f9f9f9;
+            --text-color: #333;
+            --spacing: 1.5rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: var(--spacing);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            padding: calc(var(--spacing) * 2) 0;
+            border-bottom: 1px solid var(--accent-color);
+            margin-bottom: var(--spacing);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            color: var(--primary-color);
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            color: var(--accent-color);
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: var(--spacing);
+            flex-wrap: wrap;
+        }
+
+        button, .nav-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+
+            button:hover, .nav-button:hover {
+                background-color: var(--accent-color);
+                color: white;
+            }
+
+        .remove-button {
+            background-color: #d9534f;
+            color: white;
+            font-weight: 500;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            width: 100%;
+        }
+
+            .remove-button:hover {
+                background-color: #c9302c;
+            }
+
+        #moviesContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--spacing);
+            padding: var(--spacing) 0;
+        }
+
+        .movie {
+            background-color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: var(--spacing);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+            .movie:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            }
+
+            .movie:before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 4px;
+                height: 100%;
+                background-color: var(--accent-color);
+            }
+
+        .movie-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .movie h3 {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .movie-year {
+            color: var(--accent-color);
+            font-weight: 300;
+        }
+
+        .movie-genres {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .movie-description {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #555;
+            flex-grow: 1;
+        }
+
+        .movie-rating {
+            display: flex;
+            align-items: center;
+            margin-top: 1rem;
+            justify-content: space-between;
+        }
+
+        .stars {
+            display: flex;
+            align-items: center;
+        }
+
+        .star {
+            color: var(--accent-color);
+            margin-right: 2px;
+        }
+
+        .movie-votes {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .movie-runtime {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .empty-collection {
+            text-align: center;
+            padding: 3rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            grid-column: 1 / -1;
+        }
+
+        .empty-collection h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .empty-collection p {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Search form styles */
+        .search-form {
+            background-color: white;
+            padding: var(--spacing);
+            margin-bottom: var(--spacing);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .search-form h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .search-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .search-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .search-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .search-button {
+            background-color: var(--primary-color);
+            flex: 1;
+        }
+
+        .reset-button {
+            background-color: #6c757d;
+            flex: 1;
+        }
+
+        .search-results {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .error-message {
+            color: #d9534f;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            #moviesContainer {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .search-row {
+                flex-direction: column;
+            }
+        }
+
+        .movie-rental-info {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            padding: 10px;
+            background-color: rgba(201, 169, 110, 0.1);
+            border-left: 3px solid var(--accent-color);
+        }
+        
+        .movie-rental-info p {
+            margin: 5px 0;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: var(--spacing);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 480px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-modal:hover {
+            color: var(--primary-color);
+        }
+        
+        .transfer-form {
+            margin-top: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .error {
+            color: var(--error-color);
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>My Movie Collection</h1>
+        <p class="subtitle">Your Curated Cinema Selection</p>
+    </header>
+
+    <div class="controls">
+        <a href="index.html" class="nav-button">Back to Movie Catalog</a>
+        <button id="refreshBtn">Refresh Collection</button>
+        <a href="addMovie.html" class="nav-button">Add A Movie</a>
+        <a href="userProfile.html" class="nav-button">My Profile</a>
+        <button class="nav-button" id="logoutBtn">Logout</button>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <div id="moviesContainer"></div>
+
+    <!-- Transfer Movie Modal -->
+    <div class="modal" id="transferModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeTransferModal">&times;</span>
+            <h2>Transfer Movie Rental</h2>
+            <p>You are about to transfer the rental of <strong id="transferMovieTitle"></strong>.</p>
+            <form id="transferForm" class="transfer-form">
+                <input type="hidden" id="transferMovieId">
+                <div class="form-group">
+                    <label for="transferEmail">Email of the user to transfer to:</label>
+                    <input type="email" id="transferEmail" required>
+                    <div class="error" id="transferEmailError">Please enter a valid email address</div>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="nav-button">Transfer Rental</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const moviesURL = 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Movies';
+        const usersURL = 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Users';
+        
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.className = 'notification ' + (isError ? 'error-message' : 'success-message');
+            notification.innerHTML = `<p>${message}</p>`;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+
+        function checkAuth() {
+            const storedUser = localStorage.getItem("currentUser");
+        
+            if (!storedUser || storedUser === "undefined") {
+                window.location.href = 'login.html';
+                return null;
+            }
+        
+            const user = JSON.parse(storedUser);
+            return user;
+        }
+        
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+        
+        function loadRentedMovies() {
+            const user = checkAuth();
+            if (!user) return;
+            
+            const userId = user.id;
+            
+            $.ajax({
+                url: `${moviesURL}/GetRentedMovies/${userId}`,
+                type: 'GET',
+                success: function(movies) {
+                    const container = document.getElementById('moviesContainer');
+                    container.innerHTML = '';
+                    
+                    if (movies && movies.length > 0) {
+                        movies.forEach(movie => {
+                            const movieElement = document.createElement('div');
+                            movieElement.className = 'movie';
+                            
+                            // Calculate rental days left
+                            const rentEnd = new Date(movie.rentEnd);
+                            const today = new Date();
+                            const daysLeft = Math.ceil((rentEnd - today) / (1000 * 60 * 60 * 24));
+                            
+                            movieElement.innerHTML = `
+                                <img src="${movie.primaryImage}" alt="${movie.primaryTitle}" class="movie-image">
+                                <h3>${movie.primaryTitle} <span class="movie-year">(${movie.year})</span></h3>
+                                <div class="movie-genres">${movie.genres || 'No genres specified'}</div>
+                                <div class="movie-description">${movie.description || 'No description available'}</div>
+                                <div class="movie-rating">
+                                    <div class="stars">
+                                        ${getStarsHTML(movie.averageRating)}
+                                    </div>
+                                    <div class="movie-votes">${movie.numVotes} votes</div>
+                                </div>
+                                <div class="movie-runtime">${movie.runtimeMinutes} minutes</div>
+                                <div class="movie-rental-info">
+                                    <p><strong>Rental Period:</strong> ${formatDate(movie.rentStart)} to ${formatDate(movie.rentEnd)}</p>
+                                    <p><strong>Days Left:</strong> ${daysLeft}</p>
+                                    <p><strong>Total Price:</strong> $${movie.totalPrice.toFixed(2)}</p>
+                                </div>
+                                <button class="transfer-button" data-id="${movie.id}" data-title="${movie.primaryTitle}">Transfer Rental</button>
+                            `;
+                            
+                            container.appendChild(movieElement);
+                        });
+                        
+                        // Add event listeners to transfer buttons
+                        document.querySelectorAll('.transfer-button').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const movieId = this.getAttribute('data-id');
+                                const movieTitle = this.getAttribute('data-title');
+                                openTransferModal(movieId, movieTitle);
+                            });
+                        });
+                    } else {
+                        container.innerHTML = `
+                            <div class="empty-collection">
+                                <h2>You don't have any rented movies yet</h2>
+                                <p>Head over to our movie catalog to find movies to rent.</p>
+                                <a href="index.html" class="nav-button">Browse Movies</a>
+                            </div>
+                        `;
+                    }
+                },
+                error: function(err) {
+                    showNotification("Error loading rented movies: " + (err.responseText || err.statusText), true);
+                    console.error("Error loading rented movies:", err);
+                }
+            });
+        }
+        
+        function getStarsHTML(rating) {
+            const fullStars = Math.floor(rating);
+            const halfStar = rating % 1 >= 0.5;
+            const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+            
+            let starsHTML = '';
+            
+            for (let i = 0; i < fullStars; i++) {
+                starsHTML += '<span class="star">★</span>';
+            }
+            
+            if (halfStar) {
+                starsHTML += '<span class="star">✫</span>';
+            }
+            
+            for (let i = 0; i < emptyStars; i++) {
+                starsHTML += '<span class="star">☆</span>';
+            }
+            
+            return starsHTML;
+        }
+        
+        function openTransferModal(movieId, movieTitle) {
+            document.getElementById('transferMovieId').value = movieId;
+            document.getElementById('transferMovieTitle').textContent = movieTitle;
+            document.getElementById('transferEmail').value = '';
+            document.getElementById('transferEmailError').style.display = 'none';
+            
+            const modal = document.getElementById('transferModal');
+            modal.style.display = 'flex';
+        }
+        
+        function closeTransferModal() {
+            document.getElementById('transferModal').style.display = 'none';
+        }
+        
+        function transferRental(movieId, email) {
+            const user = checkAuth();
+            if (!user) return;
+    
+            // First get the user ID for the email
+            $.ajax({
+                url: `${usersURL}/getByEmail?email=${encodeURIComponent(email)}`,
+                type: 'GET',
+                success: function(targetUser) {
+                    if (!targetUser) {
+                        document.getElementById('transferEmailError').textContent = 'User not found with this email';
+                        document.getElementById('transferEmailError').style.display = 'block';
+                        return;
+                    }
+            
+                    // Before transferring, check if target user already has this movie
+                    $.ajax({
+                        url: `${moviesURL}/GetRentedMovies/${targetUser.id}`,
+                        type: 'GET',
+                        success: function(rentedMovies) {
+                            // Check if target user already has this movie
+                            const alreadyRented = rentedMovies.some(movie => movie.id === parseInt(movieId));
+                    
+                            if (alreadyRented) {
+                                document.getElementById('transferEmailError').textContent = 'This user already has this movie in their collection';
+                                document.getElementById('transferEmailError').style.display = 'block';
+                                return;
+                            }
+                    
+                            // Now proceed with the transfer
+                            const transferData = {
+                                MovieId: parseInt(movieId),
+                                CurrentUserId: user.id,
+                                NewUserId: targetUser.id
+                            };
+                    
+                            $.ajax({
+                                url: `${moviesURL}/TransferRental`,
+                                type: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify(transferData),
+                                success: function(result) {
+                                    closeTransferModal();
+                                    showNotification("Movie rental transferred successfully");
+                                    loadRentedMovies(); // Reload the movies
+                                },
+                                error: function(err) {
+                                    showNotification("Error transferring rental: " + (err.responseText || err.statusText), true);
+                                    console.error("Error transferring rental:", err);
+                                }
+                            });
+                        },
+                        error: function(err) {
+                            document.getElementById('transferEmailError').textContent = 'Error checking target user\'s collection';
+                            document.getElementById('transferEmailError').style.display = 'block';
+                        }
+                    });
+                },
+                error: function(err) {
+                    document.getElementById('transferEmailError').textContent = 'Error finding user';
+                    document.getElementById('transferEmailError').style.display = 'block';
+                    console.error("Error finding user:", err);
+                }
+            });
+        }
+        
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+        
+        $(document).ready(function () {
+            checkAuth();
+            loadRentedMovies();
+            
+            // Event listeners
+            $('#refreshBtn').on('click', loadRentedMovies);
+            $('#logoutBtn').on('click', logout);
+            $('#closeTransferModal').on('click', closeTransferModal);
+            
+            $('#transferForm').on('submit', function(e) {
+                e.preventDefault();
+                const movieId = document.getElementById('transferMovieId').value;
+                const email = document.getElementById('transferEmail').value.trim();
+                
+                if (!email) {
+                    document.getElementById('transferEmailError').textContent = 'Please enter an email address';
+                    document.getElementById('transferEmailError').style.display = 'block';
+                    return;
+                }
+                
+                transferRental(movieId, email);
+            });
+        });
+    </script>
+</body>
+</html>
